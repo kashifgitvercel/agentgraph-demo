@@ -1,157 +1,199 @@
+let seed = null;
+let editingPathIndex = null;
+let localPaths = [];
+let upvotes = {};
+
 document.addEventListener("DOMContentLoaded", () => {
   const taskInput = document.getElementById("taskInput");
   const runButton = document.getElementById("runButton");
   const agentsContainer = document.getElementById("agentsContainer");
   const pathsContainer = document.getElementById("pathsContainer");
-  const graphNodes = document.getElementById("graphNodes");
-  const exampleChips = document.querySelectorAll(".example-chip");
+  const examples = document.querySelectorAll(".example");
 
-  let seed = null;
+  const editorPanel = document.getElementById("editorPanel");
+  const editorName = document.getElementById("editorName");
+  const editorSteps = document.getElementById("editorSteps");
+  const editorAddStep = document.getElementById("editorAddStep");
+  const addStepBtn = document.getElementById("addStepBtn");
+  const saveWorkflow = document.getElementById("saveWorkflow");
+  const cancelWorkflow = document.getElementById("cancelWorkflow");
 
   fetch("seed.json")
-    .then((res) => res.json())
-    .then((data) => {
+    .then(res => res.json())
+    .then(data => {
       seed = data;
-      // Initial state: show all agents and a default path
+      // clone paths so we can edit locally
+      localPaths = JSON.parse(JSON.stringify(seed.paths));
       renderAgents(seed.agents);
-      renderPaths(seed.paths);
-      renderGraph(seed.paths[1]); // Scrape → Summarize → Notion as default
-      if (taskInput) {
-        taskInput.value = "Scrape a website and summarize it into Notion";
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to load seed.json", err);
-      if (agentsContainer) {
-        agentsContainer.innerHTML =
-          '<div style="font-size:11px;color:#fca5a5;">Error loading seed.json</div>';
-      }
+      renderPaths(localPaths);
+      populateAddStepDropdown();
     });
 
-  function renderAgents(agentList) {
-    if (!agentsContainer) return;
-    agentsContainer.innerHTML = "";
-    if (!agentList || agentList.length === 0) {
-      agentsContainer.innerHTML =
-        '<div style="font-size:11px;color:#9ca3af;">No agents found for this task in the demo seed.</div>';
-      return;
-    }
+  function populateAddStepDropdown() {
+    editorAddStep.innerHTML = "";
+    seed.agents.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a.id;
+      opt.textContent = a.name;
+      editorAddStep.appendChild(opt);
+    });
+  }
 
-    agentList.forEach((agent) => {
+  function renderAgents(list) {
+    agentsContainer.innerHTML = "";
+    list.forEach(agent => {
       const div = document.createElement("div");
       div.className = "agent-card";
       div.innerHTML = `
-        <div class="agent-name-row">
-          <div class="agent-name">${agent.name}</div>
-          <div class="agent-vendor">${agent.vendor}</div>
-        </div>
-        <div class="agent-io">
-          Inputs: ${agent.inputs.join(", ")} · Outputs: ${agent.outputs.join(", ")}
-        </div>
-        <div class="agent-tags">
-          <div class="agent-tag">Cost: ${agent.cost}</div>
-          <div class="agent-tag">ID: ${agent.id}</div>
-        </div>
+        <div style="font-weight:500;">${agent.name}</div>
+        <div style="color:#94a3b8;font-size:10px;">Inputs: ${agent.inputs.join(", ")} · Outputs: ${agent.outputs.join(", ")}</div>
+        <div style="margin-top:4px;font-size:10px;color:#94a3b8;">Vendor: ${agent.vendor} · Cost: ${agent.cost}</div>
       `;
       agentsContainer.appendChild(div);
     });
   }
 
-  function renderPaths(pathList) {
-    if (!pathsContainer) return;
+  function renderPaths(list) {
     pathsContainer.innerHTML = "";
-    if (!pathList || pathList.length === 0) {
-      pathsContainer.innerHTML =
-        '<div style="font-size:11px;color:#9ca3af;">No paths found for this task in the demo seed.</div>';
-      return;
-    }
-
-    pathList.forEach((path) => {
+    list.forEach((path, index) => {
       const stepNames = path.steps
-        .map((id) => {
-          const agent = seed.agents.find((a) => a.id === id);
-          return agent ? agent.name : id;
-        })
+        .map(id => seed.agents.find(a => a.id === id)?.name || id)
         .join(" → ");
 
       const div = document.createElement("div");
       div.className = "path-card";
       div.innerHTML = `
-        <div class="path-title-row">
-          <div class="path-title">${path.label}</div>
-          <div class="path-meta">Cost: ${path.cost}</div>
+        <div style="font-weight:500;">${path.label}</div>
+        <div style="color:#94a3b8;font-size:10px;margin-top:2px;">${stepNames}</div>
+        <div class="path-actions">
+          <button class="path-btn" data-index="${index}" data-action="edit">Edit</button>
+          <button class="path-btn" data-index="${index}" data-action="json">Copy JSON</button>
+          <button class="path-btn" data-index="${index}" data-action="upvote">👍 ${upvotes[index] || 0}</button>
         </div>
-        <div class="path-steps">${stepNames}</div>
-        <div class="path-meta" style="margin-top:2px;">${path.notes}</div>
       `;
       pathsContainer.appendChild(div);
     });
   }
 
-  function renderGraph(path) {
-    if (!graphNodes || !path || !seed) return;
-    graphNodes.innerHTML = "";
-    const nodes = [];
+  function openEditor(index) {
+    editingPathIndex = index;
+    const path = localPaths[index];
 
-    path.steps.forEach((id, index) => {
-      const agent = seed.agents.find((a) => a.id === id);
-      if (index > 0) {
-        const arrow = document.createElement("div");
-        arrow.className = "graph-arrow";
-        arrow.textContent = "→";
-        nodes.push(arrow);
-      }
-      const node = document.createElement("div");
-      node.className = "graph-node";
-      node.textContent = agent ? agent.name : id;
-      nodes.push(node);
+    editorName.value = path.label;
+    editorSteps.innerHTML = "";
+
+    path.steps.forEach((stepId, i) => {
+      const agent = seed.agents.find(a => a.id === stepId);
+      const row = document.createElement("div");
+      row.className = "step-row";
+      row.innerHTML = `
+        <div>${agent?.name || stepId}</div>
+        <div class="step-actions">
+          <button data-i="${i}" data-move="up">↑</button>
+          <button data-i="${i}" data-move="down">↓</button>
+          <button data-i="${i}" data-move="remove">✕</button>
+        </div>
+      `;
+      editorSteps.appendChild(row);
     });
 
-    nodes.forEach((el) => graphNodes.appendChild(el));
+    editorPanel.classList.add("open");
   }
 
-  function choosePathsForTask(task) {
-    if (!seed) return { agents: seed ? seed.agents : [], paths: [] };
-    const lower = task.toLowerCase();
+  function closeEditor() {
+    editorPanel.classList.remove("open");
+    editingPathIndex = null;
+  }
 
-    let matchKey = null;
-    if (lower.includes("csv")) matchKey = "csv";
-    else if (lower.includes("scrape") || lower.includes("website")) matchKey = "scrape";
-    else if (lower.includes("pdf")) matchKey = "pdf";
-    else if (lower.includes("image")) matchKey = "image";
+  pathsContainer.addEventListener("click", e => {
+    const btn = e.target;
+    if (!btn.dataset.action) return;
 
-    if (!matchKey) {
-      return { agents: seed.agents, paths: seed.paths };
+    const index = parseInt(btn.dataset.index, 10);
+    const action = btn.dataset.action;
+
+    if (action === "edit") {
+      openEditor(index);
     }
 
-    const paths = seed.paths.filter((p) => p.task_match === matchKey);
-    const agentIds = new Set();
-    paths.forEach((p) => p.steps.forEach((id) => agentIds.add(id)));
-    const agents = seed.agents.filter((a) => agentIds.has(a.id));
+    if (action === "json") {
+      const json = JSON.stringify(localPaths[index], null, 2);
+      navigator.clipboard.writeText(json).catch(() => {});
+      alert("Workflow JSON copied.");
+    }
 
-    return { agents, paths };
-  }
+    if (action === "upvote") {
+      upvotes[index] = (upvotes[index] || 0) + 1;
+      renderPaths(localPaths);
+    }
+  });
 
-  function handleRun() {
-    if (!seed) return;
-    const task = (taskInput && taskInput.value.trim()) || "";
-    const { agents, paths } = choosePathsForTask(task);
-    renderAgents(agents);
-    renderPaths(paths);
-    renderGraph(paths[0] || null);
-  }
+  addStepBtn.addEventListener("click", () => {
+    if (editingPathIndex === null) return;
+    const id = editorAddStep.value;
+    localPaths[editingPathIndex].steps.push(id);
+    openEditor(editingPathIndex); // re-render
+  });
 
-  if (runButton) {
-    runButton.addEventListener("click", handleRun);
-  }
+  editorSteps.addEventListener("click", e => {
+    const btn = e.target;
+    if (!btn.dataset.i || editingPathIndex === null) return;
 
-  if (exampleChips && exampleChips.length) {
-    exampleChips.forEach((chip) => {
-      chip.addEventListener("click", () => {
-        const task = chip.getAttribute("data-task") || "";
-        if (taskInput) taskInput.value = task;
-        handleRun();
-      });
+    const i = parseInt(btn.dataset.i, 10);
+    const move = btn.dataset.move;
+    const steps = localPaths[editingPathIndex].steps;
+
+    if (move === "up" && i > 0) {
+      [steps[i - 1], steps[i]] = [steps[i], steps[i - 1]];
+    }
+    if (move === "down" && i < steps.length - 1) {
+      [steps[i + 1], steps[i]] = [steps[i], steps[i + 1]];
+    }
+    if (move === "remove") {
+      steps.splice(i, 1);
+    }
+
+    openEditor(editingPathIndex); // re-render
+  });
+
+  saveWorkflow.addEventListener("click", () => {
+    if (editingPathIndex === null) return;
+    localPaths[editingPathIndex].label = editorName.value || localPaths[editingPathIndex].label;
+    closeEditor();
+    renderPaths(localPaths);
+  });
+
+  cancelWorkflow.addEventListener("click", closeEditor);
+
+  examples.forEach(btn => {
+    btn.addEventListener("click", () => {
+      taskInput.value = btn.dataset.task;
+      runButton.click();
     });
-  }
+  });
+
+  runButton.addEventListener("click", () => {
+    if (!seed) return;
+    const task = (taskInput.value || "").toLowerCase();
+    let match = null;
+
+    if (task.includes("csv")) match = "csv";
+    else if (task.includes("scrape") || task.includes("website")) match = "scrape";
+    else if (task.includes("pdf")) match = "pdf";
+    else if (task.includes("image")) match = "image";
+
+    if (!match) {
+      // no match → show all
+      renderAgents(seed.agents);
+      renderPaths(localPaths);
+      return;
+    }
+
+    const filtered = localPaths.filter(p => p.task_match === match);
+    const agentIds = new Set(filtered.flatMap(p => p.steps));
+    const agents = seed.agents.filter(a => agentIds.has(a.id));
+
+    renderAgents(agents);
+    renderPaths(filtered.length ? filtered : localPaths);
+  });
 });
