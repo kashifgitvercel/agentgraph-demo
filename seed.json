@@ -1,95 +1,119 @@
 {
   "agents": [
     {
-      "id": "csv-cleaner",
+      "id": "csv_cleaner",
       "name": "CSV Cleaner",
-      "vendor": "Internal",
-      "domain": "data-cleaning",
       "description": "Cleans messy CSV files and outputs structured, normalized data.",
       "inputs": ["csv"],
       "outputs": ["cleaned_csv"],
-      "cost": "Low"
+      "cost": "Low",
+      "vendor": "Internal"
     },
     {
-      "id": "webscraper-gpt",
-      "name": "WebScraperGPT",
-      "vendor": "OpenAI",
-      "domain": "scraping",
-      "description": "Scrapes a webpage and returns structured HTML or JSON.",
+      "id": "chart_generator",
+      "name": "Chart Generator",
+      "description": "Turns cleaned tabular data into charts and visualizations.",
+      "inputs": ["cleaned_csv"],
+      "outputs": ["charts"],
+      "cost": "Medium",
+      "vendor": "Internal"
+    },
+    {
+      "id": "web_scraper",
+      "name": "Web Scraper",
+      "description": "Fetches and extracts content from a URL.",
       "inputs": ["url"],
-      "outputs": ["html", "json"],
-      "cost": "Moderate"
-    },
-    {
-      "id": "chartmaker",
-      "name": "ChartMaker",
-      "vendor": "Internal",
-      "domain": "visualization",
-      "description": "Turns structured data into charts (PNG).",
-      "inputs": ["structured_data"],
-      "outputs": ["png_chart"],
-      "cost": "Moderate"
-    },
-    {
-      "id": "notion-writer",
-      "name": "NotionWriter",
-      "vendor": "SaaS",
-      "domain": "notes",
-      "description": "Creates or updates a Notion page with provided text.",
-      "inputs": ["text"],
-      "outputs": ["notion_page"],
-      "cost": "Low"
-    },
-    {
-      "id": "pdf-extractor",
-      "name": "PDF Extractor",
-      "vendor": "Internal",
-      "domain": "document-processing",
-      "description": "Extracts text and metadata from PDF files.",
-      "inputs": ["pdf"],
-      "outputs": ["text"],
-      "cost": "Low"
+      "outputs": ["html", "text"],
+      "cost": "Medium",
+      "vendor": "Playwright"
     },
     {
       "id": "summarizer",
       "name": "Summarizer",
-      "vendor": "OpenAI",
-      "domain": "nlp",
-      "description": "Summarizes long text into concise insights.",
+      "description": "Summarizes long text into concise bullet points.",
       "inputs": ["text"],
       "outputs": ["summary"],
-      "cost": "Low"
+      "cost": "Medium",
+      "vendor": "OpenAI"
     },
     {
-      "id": "emailer",
-      "name": "Emailer",
-      "vendor": "Internal",
-      "domain": "communication",
-      "description": "Sends an email with provided content.",
-      "inputs": ["text", "email_address"],
+      "id": "notion_writer",
+      "name": "Notion Writer",
+      "description": "Creates or updates a Notion page with structured content.",
+      "inputs": ["summary"],
+      "outputs": ["notion_page"],
+      "cost": "Low",
+      "vendor": "Notion API"
+    },
+    {
+      "id": "pdf_extractor",
+      "name": "PDF Extractor",
+      "description": "Extracts text and key sections from PDF files.",
+      "inputs": ["pdf"],
+      "outputs": ["text"],
+      "cost": "Medium",
+      "vendor": "Internal"
+    },
+    {
+      "id": "email_sender",
+      "name": "Email Sender",
+      "description": "Sends emails with structured content and attachments.",
+      "inputs": ["summary"],
       "outputs": ["email_sent"],
-      "cost": "Low"
+      "cost": "Low",
+      "vendor": "SMTP"
+    },
+    {
+      "id": "image_generator",
+      "name": "Image Generator",
+      "description": "Generates images from text prompts.",
+      "inputs": ["prompt"],
+      "outputs": ["image"],
+      "cost": "Medium",
+      "vendor": "Image API"
+    },
+    {
+      "id": "drive_uploader",
+      "name": "Drive Uploader",
+      "description": "Uploads files to Google Drive.",
+      "inputs": ["file"],
+      "outputs": ["drive_file"],
+      "cost": "Low",
+      "vendor": "Google Drive API"
     }
   ],
-
   "paths": [
     {
-      "id": "scrape-summarize-notion",
-      "title": "Scrape → Summarize → Send to Notion",
-      "description": "Scrape a webpage, summarize the content, and publish it to Notion.",
-      "steps": ["webscraper-gpt", "summarizer", "notion-writer"]
+      "id": "csv_to_charts",
+      "label": "Clean CSV → Charts",
+      "task_match": "csv",
+      "steps": ["csv_cleaner", "chart_generator"],
+      "cost": "Low–Medium",
+      "notes": "Good for messy operational exports that need quick visualization."
     },
     {
-      "id": "clean-visualize-export",
-      "title": "Clean CSV → Visualize → Export",
-      "description": "Clean messy CSV data, generate charts, and export the results.",
-      "steps": ["csv-cleaner", "chartmaker"]
+      "id": "scrape_to_notion",
+      "label": "Scrape → Summarize → Notion",
+      "task_match": "scrape",
+      "steps": ["web_scraper", "summarizer", "notion_writer"],
+      "cost": "Medium",
+      "notes": "Ideal for turning websites into internal knowledge pages."
     },
     {
-      "id": "pdf-summarize-email",
-      "title": "Extract PDF → Summarize → Email",
-      "description": "Extract text from a PDF, summarize it, and email the insights.",
-      "steps": ["pdf-extractor", "summarizer", "emailer"]
+      "id": "pdf_to_email",
+      "label": "PDF → Insights → Email",
+      "task_match": "pdf",
+      "steps": ["pdf_extractor", "summarizer", "email_sender"],
+      "cost": "Medium",
+      "notes": "Great for reports, research, and long documents."
+    },
+    {
+      "id": "image_to_drive",
+      "label": "Generate Image → Upload to Drive",
+      "task_match": "image",
+      "steps": ["image_generator", "drive_uploader"],
+      "cost": "Medium",
+      "notes": "Useful for marketing assets and creative workflows."
     }
   ]
 }

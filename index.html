@@ -2,71 +2,500 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgentGraph — Universal Map of AI Agents</title>
+  <title>AgentGraph – The universal map of AI agents</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fafafa; color: #222; }
-    header { padding: 60px 20px; text-align: center; }
-    h1 { font-size: 42px; margin-bottom: 10px; }
-    h2 { font-size: 22px; font-weight: normal; color: #555; }
-    .cta { margin-top: 30px; }
-    .cta a { padding: 14px 26px; background: black; color: white; text-decoration: none; border-radius: 6px; font-size: 18px; }
-    .section { padding: 60px 20px; max-width: 800px; margin: auto; }
-    .examples { background: white; border-radius: 12px; padding: 30px; margin-top: 20px; }
-    .examples h3 { margin-top: 0; }
-    ul { line-height: 1.7; }
-    footer { text-align: center; padding: 40px; color: #777; }
+    :root {
+      --bg: #050816;
+      --card: #0b1020;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.12);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border-subtle: #1f2933;
+      --danger: #f97373;
+      --success: #4ade80;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px 64px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 960px;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(3, 7, 18, 0.98));
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: var(--shadow-soft);
+      padding: 28px 28px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.16), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .logo-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #a5b4fc, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1020;
+      font-weight: 700;
+      font-size: 16px;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .logo-text-main {
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      font-size: 15px;
+    }
+
+    .logo-text-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 800px) {
+      .shell {
+        padding: 22px 18px 26px;
+        border-radius: 22px;
+      }
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .hero-title {
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(120deg, #e5e7eb, #a5b4fc, #38bdf8);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 420px;
+      margin-bottom: 18px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .hero-badge {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .btn-primary {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 9px 18px;
+      border-radius: var(--radius-pill);
+      background: radial-gradient(circle at 0 0, #a5b4fc, #4f46e5);
+      color: #f9fafb;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
+      text-decoration: none;
+    }
+
+    .btn-primary span.icon {
+      font-size: 14px;
+    }
+
+    .btn-ghost {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 7px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .hero-footnote {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .hero-footnote strong {
+      color: #e5e7eb;
+      font-weight: 500;
+    }
+
+    .panel {
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.12), transparent 55%),
+        #020617;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 16px 16px 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .panel-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .task-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .task-chip {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      cursor: default;
+    }
+
+    .mini-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .mini-card-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .mini-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 8px 9px;
+      font-size: 11px;
+    }
+
+    .mini-card-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+      color: #e5e7eb;
+    }
+
+    .mini-card-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .mini-card-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .mini-tag {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .graph-placeholder {
+      margin-top: 10px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      padding: 8px 9px;
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .graph-nodes {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 10px;
+    }
+
+    .graph-node {
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .graph-arrow {
+      opacity: 0.6;
+    }
+
+    .graph-label {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .footer-row {
+      margin-top: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .footer-row a {
+      color: #a5b4fc;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
+  <div class="shell">
+    <div class="header-row">
+      <div class="logo-mark">
+        <div class="logo-circle">A</div>
+        <div>
+          <div class="logo-text-main">AgentGraph</div>
+          <div class="logo-text-sub">The universal map of AI agents</div>
+        </div>
+      </div>
+      <div class="pill">
+        <span class="pill-dot"></span>
+        <span>Live YC demo build · v0.1</span>
+      </div>
+    </div>
 
-<header>
-  <h1>AgentGraph</h1>
-  <h2>The universal map of AI agents</h2>
-  <div class="cta">
-    <a href="demo.html">Open the Demo</a>
+    <div class="layout">
+      <div>
+        <h1 class="hero-title">
+          Describe a task.<br />
+          <span>AgentGraph shows the agents and workflow.</span>
+        </h1>
+        <p class="hero-sub">
+          Instead of guessing which model, tool, or agent to use, AgentGraph shows you
+          the exact chain of agents, their inputs/outputs, and the cost to run them.
+        </p>
+
+        <div class="hero-badges">
+          <div class="hero-badge">Maps agents, tools, and multi‑step workflows</div>
+          <div class="hero-badge">Shows IO contracts, vendor, and cost</div>
+          <div class="hero-badge">Built for AI teams and automation engineers</div>
+        </div>
+
+        <div class="hero-actions">
+          <a href="demo.html" class="btn-primary">
+            <span>Open the interactive demo</span>
+            <span class="icon">↗</span>
+          </a>
+          <a href="demo.html" class="btn-ghost">
+            <span>Try with a real task</span>
+          </a>
+        </div>
+
+        <div class="hero-footnote">
+          <strong>Great for:</strong> internal AI platforms, ops teams, and anyone wiring together multiple agents.
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">What AgentGraph does</div>
+              <div class="panel-sub">
+                Type a task. AgentGraph finds the agents and paths that can actually do it.
+              </div>
+            </div>
+          </div>
+
+          <div class="mini-label">Try these example tasks</div>
+          <div class="task-chip-row">
+            <div class="task-chip">Clean messy CSV data and turn it into charts</div>
+            <div class="task-chip">Scrape a website and summarize it into Notion</div>
+            <div class="task-chip">Extract insights from a PDF and email them</div>
+            <div class="task-chip">Generate an image and upload it to Google Drive</div>
+          </div>
+
+          <div class="mini-label">Example agents AgentGraph might route through</div>
+          <div class="mini-card-row">
+            <div class="mini-card">
+              <div class="mini-card-title">CSV Cleaner</div>
+              <div class="mini-card-meta">Inputs: csv · Outputs: cleaned_csv</div>
+              <div class="mini-card-tag-row">
+                <div class="mini-tag">Cost: Low</div>
+                <div class="mini-tag">Vendor: Internal</div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">Web Scraper</div>
+              <div class="mini-card-meta">Inputs: url · Outputs: html, text</div>
+              <div class="mini-card-tag-row">
+                <div class="mini-tag">Cost: Medium</div>
+                <div class="mini-tag">Vendor: Playwright</div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">Summarizer</div>
+              <div class="mini-card-meta">Inputs: text · Outputs: summary</div>
+              <div class="mini-card-tag-row">
+                <div class="mini-tag">Cost: Medium</div>
+                <div class="mini-tag">Vendor: OpenAI</div>
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="mini-card-title">Notion Writer</div>
+              <div class="mini-card-meta">Inputs: summary · Outputs: notion_page</div>
+              <div class="mini-card-tag-row">
+                <div class="mini-tag">Cost: Low</div>
+                <div class="mini-tag">Vendor: Notion API</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="graph-placeholder">
+            <div class="graph-nodes">
+              <div class="graph-node">Web Scraper</div>
+              <div class="graph-arrow">→</div>
+              <div class="graph-node">Summarizer</div>
+              <div class="graph-arrow">→</div>
+              <div class="graph-node">Notion Writer</div>
+            </div>
+            <div class="graph-label">One possible path for “Scrape → Summarize → Notion”</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-row">
+      <div>Describe tasks in natural language. AgentGraph turns them into concrete agents and workflows.</div>
+      <div>Next: wire this into your internal tools or agent framework.</div>
+    </div>
   </div>
-</header>
-
-<div class="section">
-  <h2>What AgentGraph does</h2>
-  <p>
-    Describe a task. AgentGraph shows you the agents and multi‑step workflows that can actually do it — including capabilities, IO contracts, vendor, and cost.
-  </p>
-
-  <div class="examples">
-    <h3>Try these example tasks</h3>
-    <ul>
-      <li>Clean messy CSV data and turn it into charts</li>
-      <li>Scrape a website and summarize it into Notion</li>
-      <li>Extract insights from a PDF and email them</li>
-      <li>Generate an image and upload it to Google Drive</li>
-    </ul>
-  </div>
-
-  <div class="examples">
-    <h3>Example agents</h3>
-    <ul>
-      <li><strong>CSV Cleaner</strong> — input: CSV, output: cleaned CSV</li>
-      <li><strong>WebScraperGPT</strong> — input: URL, output: HTML/JSON</li>
-      <li><strong>ChartMaker</strong> — input: structured data, output: PNG chart</li>
-      <li><strong>NotionWriter</strong> — input: text, output: Notion page</li>
-    </ul>
-  </div>
-
-  <div class="examples">
-    <h3>Example paths</h3>
-    <ul>
-      <li><strong>Scrape → Summarize → Send to Notion</strong></li>
-      <li><strong>Clean CSV → Visualize → Export</strong></li>
-      <li><strong>Extract PDF → Summarize → Email</strong></li>
-    </ul>
-  </div>
-</div>
-
-<footer>
-  AgentGraph © 2026
-</footer>
-
 </body>
 </html>

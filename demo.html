@@ -3,243 +3,549 @@
 <head>
   <meta charset="UTF-8" />
   <title>AgentGraph – Smart Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #f7f9fc;
-      --card-bg: #ffffff;
-      --border: #e2e8f0;
-      --text: #2d3748;
-      --muted: #4a5568;
-      --primary: #2b6cb0;
-      --primary-soft: #ebf4ff;
-      --pill-bg: #edf2f7;
-      --accent-green: #38a169;
-      --accent-purple: #805ad5;
-      --accent-orange: #dd6b20;
-      --accent-pink: #d53f8c;
-      --accent-teal: #319795;
+      --bg: #020617;
+      --card: #020617;
+      --panel: #020617;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.12);
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border-subtle: #1f2937;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-pill: 999px;
     }
-    * { box-sizing: border-box; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      background: var(--bg);
-      color: var(--text);
     }
-    header {
-      padding: 24px;
-      background: white;
-      border-bottom: 1px solid var(--border);
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 45%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 12px 40px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1040px;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(3, 7, 18, 0.98));
+      border-radius: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+      padding: 22px 22px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -120px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
+        radial-gradient(circle at 100% 0%, rgba(129, 140, 248, 0.16), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
     }
-    header h1 {
-      margin: 0;
-      font-size: 24px;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #a5b4fc, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #020617;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9), 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .logo-text-main {
       font-weight: 600;
+      letter-spacing: 0.03em;
+      font-size: 13px;
     }
-    main {
-      padding: 24px;
-      max-width: 1200px;
-      margin: auto;
+
+    .logo-text-sub {
+      font-size: 11px;
+      color: var(--muted);
     }
-    h2 {
-      margin-top: 40px;
-      font-size: 20px;
-      font-weight: 600;
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 15px;
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 10px;
+      color: var(--muted);
     }
-    button {
-      background: var(--primary);
-      color: white;
+
+    .pill-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .btn-ghost {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      font-size: 11px;
+      padding: 6px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        padding: 18px 14px 22px;
+        border-radius: 22px;
+      }
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .left-col-title {
+      font-size: 22px;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .left-col-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      max-width: 420px;
+    }
+
+    .task-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .task-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .task-input {
+      flex: 1;
+      min-width: 220px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .task-input::placeholder {
+      color: #6b7280;
+    }
+
+    .btn-primary {
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
+      outline: none;
       cursor: pointer;
-      margin-top: 10px;
-      font-size: 15px;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      background: radial-gradient(circle at 0 0, #a5b4fc, #4f46e5);
+      color: #f9fafb;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
+      white-space: nowrap;
     }
-    .agent-card, .path-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 16px;
-      border-radius: 8px;
+
+    .task-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .example-tasks-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .example-tasks-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin-bottom: 12px;
     }
-    .pill {
-      display: inline-block;
-      background: var(--pill-bg);
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-right: 6px;
-      font-size: 13px;
+
+    .example-chip {
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--muted);
+      cursor: pointer;
     }
-    #graph {
-      width: 100%;
-      height: 400px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-top: 20px;
+
+    .panel {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 10px 11px 11px;
+      margin-bottom: 10px;
     }
-    #debug {
-      white-space: pre-wrap;
-      background: #1a202c;
-      color: #f7fafc;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 20px;
-      font-size: 13px;
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .panel-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .panel-tag {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+
+    .agent-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 8px 9px;
+      font-size: 11px;
+    }
+
+    .agent-name-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .agent-name {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .agent-vendor {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .agent-io {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .agent-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .agent-tag {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+    }
+
+    .paths-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .path-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      padding: 7px 8px;
+      font-size: 11px;
+    }
+
+    .path-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+
+    .path-title {
+      font-weight: 500;
+      color: #e5e7eb;
+    }
+
+    .path-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .path-steps {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .graph-placeholder {
+      margin-top: 6px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      padding: 7px 8px;
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .graph-nodes {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 10px;
+      flex-wrap: wrap;
+    }
+
+    .graph-node {
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .graph-arrow {
+      opacity: 0.6;
+    }
+
+    .graph-label {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .footer-row {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+
+    .footer-row a {
+      color: #a5b4fc;
+      text-decoration: none;
     }
   </style>
 </head>
-
 <body>
-
-<header>
-  <h1>AgentGraph – Smart Demo</h1>
-</header>
-
-<main>
-
-  <h2>Describe a Task</h2>
-  <input id="taskInput" placeholder="e.g., clean messy csv data" />
-  <button onclick="processTask()">Find Agents & Paths</button>
-
-  <h2>Relevant Agents</h2>
-  <div id="relevantAgents"></div>
-
-  <h2>Suggested Paths</h2>
-  <div id="suggestedPaths"></div>
-
-  <!-- ⭐ NEW SECTIONS ⭐ -->
-  <h2>Example Agents</h2>
-  <div id="seed-agents"></div>
-
-  <h2>Example Paths</h2>
-  <div id="seed-paths"></div>
-  <!-- ⭐ END NEW SECTIONS ⭐ -->
-
-  <h2>Add an Agent</h2>
-  <form id="agentForm">
-    <input id="agentName" placeholder="Agent name" />
-    <input id="agentVendor" placeholder="Vendor" />
-    <input id="agentDomain" placeholder="Domain" />
-    <textarea id="agentDescription" placeholder="Description"></textarea>
-    <input id="agentInputs" placeholder="Inputs (comma separated)" />
-    <input id="agentOutputs" placeholder="Outputs (comma separated)" />
-    <input id="agentCost" placeholder="Cost" />
-    <button type="button" onclick="addAgent()">Add Agent</button>
-  </form>
-
-  <h2>Create a Path</h2>
-  <form id="pathForm">
-    <input id="pathTitle" placeholder="Path title" />
-    <textarea id="pathDescription" placeholder="Description"></textarea>
-    <input id="pathSteps" placeholder="Steps (agent IDs, comma separated)" />
-    <button type="button" onclick="addPath()">Add Path</button>
-  </form>
-
-  <h2>Graph</h2>
-  <div id="graph"></div>
-
-  <h2>Debug</h2>
-  <div id="debug"></div>
-
-</main>
-
-<script>
-  let agents = [];
-  let paths = [];
-
-  function processTask() {
-    const task = document.getElementById("taskInput").value.toLowerCase();
-
-    const relevant = agents.filter(a =>
-      a.name.toLowerCase().includes(task) ||
-      a.domain.toLowerCase().includes(task)
-    );
-
-    document.getElementById("relevantAgents").innerHTML =
-      relevant.map(a => `
-        <div class="agent-card">
-          <h3>${a.name}</h3>
-          <p>${a.description}</p>
+  <div class="shell">
+    <div class="header-row">
+      <div class="logo">
+        <div class="logo-circle">A</div>
+        <div>
+          <div class="logo-text-main">AgentGraph · Demo</div>
+          <div class="logo-text-sub">Describe a task → see agents and paths</div>
         </div>
-      `).join("");
-
-    const suggested = paths.filter(p =>
-      p.title.toLowerCase().includes(task)
-    );
-
-    document.getElementById("suggestedPaths").innerHTML =
-      suggested.map(p => `
-        <div class="path-card">
-          <h3>${p.title}</h3>
-          <p>${p.description}</p>
+      </div>
+      <div class="header-right">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span>Live prototype · YC build</span>
         </div>
-      `).join("");
+        <a href="index.html" class="btn-ghost">Back to overview</a>
+      </div>
+    </div>
 
-    renderDebug(task, relevant, suggested, agents);
-  }
+    <div class="layout">
+      <div>
+        <div class="left-col-title">Describe a task in plain English.</div>
+        <div class="left-col-sub">
+          AgentGraph looks up which agents can do it, how they connect, and what the full workflow looks like.
+        </div>
 
-  function addAgent() {
-    const agent = {
-      id: document.getElementById("agentName").value.toLowerCase().replace(/\s+/g, "-"),
-      name: document.getElementById("agentName").value,
-      vendor: document.getElementById("agentVendor").value,
-      domain: document.getElementById("agentDomain").value,
-      description: document.getElementById("agentDescription").value,
-      inputs: document.getElementById("agentInputs").value.split(",").map(s => s.trim()),
-      outputs: document.getElementById("agentOutputs").value.split(",").map(s => s.trim()),
-      cost: document.getElementById("agentCost").value
-    };
-    agents.push(agent);
-    alert("Agent added!");
-  }
+        <div class="task-label">Describe a task</div>
+        <div class="task-input-row">
+          <input
+            id="taskInput"
+            class="task-input"
+            placeholder="e.g., scrape a website and summarize it into Notion"
+          />
+          <button id="runButton" class="btn-primary">
+            <span>Find agents & paths</span>
+          </button>
+        </div>
+        <div class="task-hint">
+          This is a static demo: we route your task to a few example agents and paths from a seed file.
+        </div>
 
-  function addPath() {
-    const path = {
-      id: document.getElementById("pathTitle").value.toLowerCase().replace(/\s+/g, "-"),
-      title: document.getElementById("pathTitle").value,
-      description: document.getElementById("pathDescription").value,
-      steps: document.getElementById("pathSteps").value.split(",").map(s => s.trim())
-    };
-    paths.push(path);
-    alert("Path added!");
-  }
+        <div class="example-tasks-label">Try one of these:</div>
+        <div class="example-tasks-row">
+          <button class="example-chip" data-task="Clean messy CSV data and turn it into charts">
+            Clean messy CSV → charts
+          </button>
+          <button class="example-chip" data-task="Scrape a website and summarize it into Notion">
+            Scrape → summarize → Notion
+          </button>
+          <button class="example-chip" data-task="Extract insights from a PDF and email them">
+            PDF → insights → email
+          </button>
+          <button class="example-chip" data-task="Generate an image and upload it to Google Drive">
+            Image → upload → Drive
+          </button>
+        </div>
 
-  function renderGraph() {
-    document.getElementById("graph").innerHTML = "<p style='padding:20px;'>Graph rendering placeholder</p>";
-  }
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">How to read this demo</div>
+              <div class="panel-sub">
+                We’re not executing agents here. We’re showing how AgentGraph would map your task to agents and paths.
+              </div>
+            </div>
+            <div class="panel-tag">Static seed · no API calls</div>
+          </div>
+        </div>
+      </div>
 
-  function renderDebug(task, relevant, suggested, allAgents) {
-    document.getElementById("debug").textContent =
-      "Task: " + task + "\n\n" +
-      "Relevant Agents:\n" + JSON.stringify(relevant, null, 2) + "\n\n" +
-      "Suggested Paths:\n" + JSON.stringify(suggested, null, 2) + "\n\n" +
-      "All Agents:\n" + JSON.stringify(allAgents, null, 2);
-  }
+      <div>
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Relevant agents</div>
+              <div class="panel-sub">Agents that could participate in this task.</div>
+            </div>
+          </div>
+          <div id="agentsContainer" class="agents-grid">
+            <!-- Filled by loader.js -->
+          </div>
+        </div>
 
-  function init() {
-    renderGraph();
-    renderDebug("", [], [], []);
-  }
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title">Suggested paths</div>
+              <div class="panel-sub">One or more multi‑step workflows that could satisfy the task.</div>
+            </div>
+          </div>
+          <div id="pathsContainer" class="paths-list">
+            <!-- Filled by loader.js -->
+          </div>
+          <div class="graph-placeholder">
+            <div class="graph-nodes" id="graphNodes">
+              <!-- Filled by loader.js -->
+            </div>
+            <div class="graph-label">Example path visualization (static)</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  window.addEventListener("load", init);
-</script>
+    <div class="footer-row">
+      <div>Next step: plug this into your real agent registry and routing layer.</div>
+      <div>For YC, this shows the “map of agents” and “map of workflows” clearly.</div>
+    </div>
+  </div>
 
-<!-- ⭐ LOAD SEED DATA ⭐ -->
-<script src="loader.js"></script>
-
+  <script src="loader.js"></script>
 </body>
 </html>
