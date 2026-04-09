@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AgentGraph – Smart Demo</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #2d3748;
+      --muted: #4a5568;
+      --primary: #2b6cb0;
+      --primary-soft: #ebf4ff;
+      --pill-bg: #edf2f7;
+      --accent-green: #38a169;
+      --accent-purple: #805ad5;
+      --accent-orange: #dd6b20;
+      --accent-pink: #d53f8c;
+      --accent-teal: #319795;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 24px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    main {
+      padding: 24px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    h2 {
+      margin-top: 40px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 15px;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+    .agent-card, .path-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .pill {
+      display: inline-block;
+      background: var(--pill-bg);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-right: 6px;
+      font-size: 13px;
+    }
+    #graph {
+      width: 100%;
+      height: 400px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    #debug {
+      white-space: pre-wrap;
+      background: #1a202c;
+      color: #f7fafc;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>AgentGraph – Smart Demo</h1>
+</header>
+
+<main>
+
+  <h2>Describe a Task</h2>
+  <input id="taskInput" placeholder="e.g., clean messy csv data" />
+  <button onclick="processTask()">Find Agents & Paths</button>
+
+  <h2>Relevant Agents</h2>
+  <div id="relevantAgents"></div>
+
+  <h2>Suggested Paths</h2>
+  <div id="suggestedPaths"></div>
+
+  <!-- ⭐ NEW SECTIONS ⭐ -->
+  <h2>Example Agents</h2>
+  <div id="seed-agents"></div>
+
+  <h2>Example Paths</h2>
+  <div id="seed-paths"></div>
+  <!-- ⭐ END NEW SECTIONS ⭐ -->
+
+  <h2>Add an Agent</h2>
+  <form id="agentForm">
+    <input id="agentName" placeholder="Agent name" />
+    <input id="agentVendor" placeholder="Vendor" />
+    <input id="agentDomain" placeholder="Domain" />
+    <textarea id="agentDescription" placeholder="Description"></textarea>
+    <input id="agentInputs" placeholder="Inputs (comma separated)" />
+    <input id="agentOutputs" placeholder="Outputs (comma separated)" />
+    <input id="agentCost" placeholder="Cost" />
+    <button type="button" onclick="addAgent()">Add Agent</button>
+  </form>
+
+  <h2>Create a Path</h2>
+  <form id="pathForm">
+    <input id="pathTitle" placeholder="Path title" />
+    <textarea id="pathDescription" placeholder="Description"></textarea>
+    <input id="pathSteps" placeholder="Steps (agent IDs, comma separated)" />
+    <button type="button" onclick="addPath()">Add Path</button>
+  </form>
+
+  <h2>Graph</h2>
+  <div id="graph"></div>
+
+  <h2>Debug</h2>
+  <div id="debug"></div>
+
+</main>
+
+<script>
+  let agents = [];
+  let paths = [];
+
+  function processTask() {
+    const task = document.getElementById("taskInput").value.toLowerCase();
+
+    const relevant = agents.filter(a =>
+      a.name.toLowerCase().includes(task) ||
+      a.domain.toLowerCase().includes(task)
+    );
+
+    document.getElementById("relevantAgents").innerHTML =
+      relevant.map(a => `
+        <div class="agent-card">
+          <h3>${a.name}</h3>
+          <p>${a.description}</p>
+        </div>
+      `).join("");
+
+    const suggested = paths.filter(p =>
+      p.title.toLowerCase().includes(task)
+    );
+
+    document.getElementById("suggestedPaths").innerHTML =
+      suggested.map(p => `
+        <div class="path-card">
+          <h3>${p.title}</h3>
+          <p>${p.description}</p>
+        </div>
+      `).join("");
+
+    renderDebug(task, relevant, suggested, agents);
+  }
+
+  function addAgent() {
+    const agent = {
+      id: document.getElementById("agentName").value.toLowerCase().replace(/\s+/g, "-"),
+      name: document.getElementById("agentName").value,
+      vendor: document.getElementById("agentVendor").value,
+      domain: document.getElementById("agentDomain").value,
+      description: document.getElementById("agentDescription").value,
+      inputs: document.getElementById("agentInputs").value.split(",").map(s => s.trim()),
+      outputs: document.getElementById("agentOutputs").value.split(",").map(s => s.trim()),
+      cost: document.getElementById("agentCost").value
+    };
+    agents.push(agent);
+    alert("Agent added!");
+  }
+
+  function addPath() {
+    const path = {
+      id: document.getElementById("pathTitle").value.toLowerCase().replace(/\s+/g, "-"),
+      title: document.getElementById("pathTitle").value,
+      description: document.getElementById("pathDescription").value,
+      steps: document.getElementById("pathSteps").value.split(",").map(s => s.trim())
+    };
+    paths.push(path);
+    alert("Path added!");
+  }
+
+  function renderGraph() {
+    document.getElementById("graph").innerHTML = "<p style='padding:20px;'>Graph rendering placeholder</p>";
+  }
+
+  function renderDebug(task, relevant, suggested, allAgents) {
+    document.getElementById("debug").textContent =
+      "Task: " + task + "\n\n" +
+      "Relevant Agents:\n" + JSON.stringify(relevant, null, 2) + "\n\n" +
+      "Suggested Paths:\n" + JSON.stringify(suggested, null, 2) + "\n\n" +
+      "All Agents:\n" + JSON.stringify(allAgents, null, 2);
+  }
+
+  function init() {
+    renderGraph();
+    renderDebug("", [], [], []);
+  }
+
+  window.addEventListener("load", init);
+</script>
+
+<!-- ⭐ LOAD SEED DATA ⭐ -->
+<script src="loader.js"></script>
+
+</body>
+</html>
